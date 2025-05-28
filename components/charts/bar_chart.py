@@ -4,50 +4,66 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Paleta institucional padronizada
 color_map = {
-    "intensidade_fraco": "#3b82f6",      # Azul
-    "intensidade_moderado": "#10b981",  # Verde
-    "intensidade_forte": "#ef4444"      # Vermelho
+    "intensidade_fraco": "#0072B2",     # Azul escuro (Color Universal Design)
+    "intensidade_moderado": "#E69F00",  # Laranja vibrante
+    "intensidade_forte": "#D55E00"      # Vermelho escuro (contrastante com laranja)
 }
+
+
 
 def exibir_grafico_barras(df: pd.DataFrame):
     """
-    Renderiza gráficos de barras empilhadas por cidade, divididos por tipo de impacto
-    (econômico, social, ambiental) e percepção (positivo/negativo).
+    Exibe gráficos de barras empilhadas por cidade, para cada combinação de:
+    - tipo_impacto (Econômico, Social, Ambiental)
+    - impacto_esperado (Positivo ou Negativo)
 
     Args:
-        df (pd.DataFrame): DataFrame já filtrado.
+        df (pd.DataFrame): DataFrame filtrado.
     """
     if df.empty or "cidade" not in df.columns:
-        st.info("Nenhum dado disponível para os gráficos de barras.")
+        st.warning("⚠️ Nenhum dado disponível para exibição dos gráficos.")
         return
 
-    st.markdown("## 🏙️ Comparações por Cidade")
+    st.markdown("## 🏙️ Comparação de Intensidades por Cidade")
+    st.caption("Volume de respostas por tipo de impacto e percepção populacional.")
 
-    tipos_impacto = sorted(df["tipo_impacto"].dropna().unique())
+    tipos = sorted(df["tipo_impacto"].dropna().unique())
+    percepcoes = ["positivo", "negativo"]
+    intensidades = ["intensidade_fraco", "intensidade_moderado", "intensidade_forte"]
 
-    for impacto in tipos_impacto:
-        for esperado in ["positivo", "negativo"]:
-            df_filtro = df[(df.tipo_impacto == impacto) & (df.impacto_esperado == esperado)]
+    for tipo in tipos:
+        for percepcao in percepcoes:
+            dados = df[(df["tipo_impacto"] == tipo) & (df["impacto_esperado"] == percepcao)]
 
-            if df_filtro.empty:
+            if dados.empty:
                 continue
 
-            # Agrupamento por cidade e intensidade
-            df_grouped = df_filtro.groupby("cidade")[["intensidade_fraco", "intensidade_moderado", "intensidade_forte"]].sum().reset_index()
-            df_melt = df_grouped.melt(id_vars="cidade", var_name="intensidade", value_name="respostas")
-
-            # Gráfico
-            fig = px.bar(
-                df_melt,
-                x="cidade",
-                y="respostas",
-                color="intensidade",
-                color_discrete_map=color_map,
-                barmode="stack",
-                title=f"Impactos {impacto} {esperado.capitalize()}s por Cidade"
+            dados_agrupados = (
+                dados.groupby("cidade")[intensidades]
+                .sum()
+                .reset_index()
+                .sort_values("cidade")
             )
-            fig.update_layout(bargap=0.5)
+
+            fig = px.bar(
+                dados_agrupados,
+                x="cidade",
+                y=intensidades,
+                title=f"{tipo} - Impactos {percepcao.capitalize()}s",
+                labels={"value": "Nível de Intensidade", "cidade": "Cidade"},
+                text_auto=True,
+                color_discrete_map=color_map
+            )
+
+            fig.update_layout(
+                barmode="stack",
+                xaxis_title="Cidade",
+                yaxis_title="Quantidade de Registros",
+                legend_title="Intensidade",
+                margin=dict(t=60, b=40),
+                paper_bgcolor="#F1FBF5",
+                plot_bgcolor="#F1FBF5"
+            )
 
             st.plotly_chart(fig, use_container_width=True)

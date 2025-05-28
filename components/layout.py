@@ -30,10 +30,11 @@ def exibir_cabecalho(caminho_logo="assets/logo_embrapa.png", largura=300):
     st.markdown(
         f"""
         <div style="display: flex; justify-content: center; align-items: center; height: 200px; margin-top: -10px; margin-bottom: 20px;">
-            <img src="data:image/{tipo_arquivo};base64,{logo_base64}" width="{largura}" style="animation: bounce 4s infinite alternate;">
+        <img src="data:image/{tipo_arquivo};base64,{logo_base64}" width="{largura}">
         </div>
         """,
         unsafe_allow_html=True
     )
+    
 
     st.title("Impacto do Turismo nas Cidades")

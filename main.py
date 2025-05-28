@@ -28,6 +28,7 @@ exibir_cabecalho()
 # Carregamento dos dados
 df = carregar_dados()
 
+
 # Filtros e dados filtrados
 df_filtrado, filtros = aplicar_filtros(df)
 
@@ -46,6 +47,6 @@ else:
 
     # Legenda visual
     st.markdown("### 🧾 Legenda Visual")
-    st.markdown("- 🟢 **Positivo:** Impactos com expectativa ou resultado benéfico")
-    st.markdown("- 🔴 **Negativo:** Impactos com expectativa ou resultado prejudicial")
-    st.markdown("- 🔵 **Neutro:** Respostas intermediárias ou avaliativas (pode ser incluído se houver)")
+    st.markdown("- 🟦 **Positivo:** Impactos com expectativa ou resultado benéfico")
+    st.markdown("- 🟧 **Negativo:** Impactos com expectativa ou resultado prejudicial")
+    st.markdown("- ⚪ **Neutro:** Respostas intermediárias ou avaliativas (pode ser incluído se houver)")

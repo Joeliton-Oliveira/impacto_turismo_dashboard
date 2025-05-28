@@ -4,46 +4,59 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+
 def exibir_heatmap(df: pd.DataFrame):
     """
-    Renderiza mapas de calor da intensidade forte dos impactos por cidade e indicador,
-    separados por percepção (positivo e negativo).
+    Exibe mapas de calor com a soma da intensidade forte por indicador e cidade,
+    separados por tipo de percepção (positivo/negativo).
 
     Args:
         df (pd.DataFrame): DataFrame filtrado.
     """
-    if df.empty:
-        st.info("Nenhum dado disponível para o mapa de calor.")
+    if df.empty or "impacto_esperado" not in df.columns:
+        st.info("⚠️ Nenhum dado disponível para o mapa de calor.")
         return
 
-    st.markdown("## 🌡️ Concentração dos Impactos (Heatmap)")
+    st.markdown("## 🌡️ Mapa de Calor de Intensidade Forte")
+    st.caption("Visualização da concentração dos impactos mais intensos, por cidade e indicador.")
 
-    for impacto in ["positivo", "negativo"]:
-        st.markdown(f"### {impacto.capitalize()}")
+    aba_pos, aba_neg = st.tabs(["✅ Positivo", "⚠️ Negativo"])
 
-        df_sub = df[df["impacto_esperado"] == impacto]
+    for impacto, aba in zip(["positivo", "negativo"], [aba_pos, aba_neg]):
+        with aba:
+            df_sub = df[df["impacto_esperado"] == impacto]
 
-        if df_sub.empty:
-            st.warning(f"Sem dados para impacto {impacto}.")
-            continue
+            if df_sub.empty:
+                st.warning(f"Nenhum dado disponível para impacto {impacto}.")
+                continue
 
-        # Agrupamento por cidade e indicador, somando intensidade forte
-        df_heat = df_sub.groupby(["cidade", "indicador"])["intensidade_forte"].sum().reset_index()
+            df_heat = (
+                df_sub.groupby(["cidade", "indicador"])["intensidade_forte"]
+                .sum()
+                .reset_index()
+            )
 
-        fig = px.density_heatmap(
-            df_heat,
-            x="indicador",
-            y="cidade",
-            z="intensidade_forte",
-            color_continuous_scale="Plasma"
-        )
+            fig = px.density_heatmap(
+                df_heat,
+                x="cidade",
+                y="indicador",
+                z="intensidade_forte",
+                color_continuous_scale="Cividis",
+                title=f"Impactos {impacto.capitalize()}s",
+                text_auto=True,
+                nbinsx=len(df_heat["cidade"].unique()),
+                nbinsy=len(df_heat["indicador"].unique())
+            )
 
-        fig.update_layout(
-        xaxis_tickangle=100,
-        height=500,
-        margin=dict(l=20, r=20, t=30, b=120),
-        autosize=True,
-        legend_title_text="Intensidade Forte"
-        )
+            fig.update_layout(
+                xaxis_title="Cidade",
+                yaxis_title="Indicador",
+                margin=dict(t=60, b=40),
+                coloraxis_colorbar=dict(title="Intensidade Forte"),
+                paper_bgcolor="#F1FBF5",
+                plot_bgcolor="#F1FBF5"
+            )
 
-        st.plotly_chart(fig, use_container_width=True)
+            fig.update_traces(hovertemplate="Cidade: %{x}<br>Indicador: %{y}<br>Intensidade Forte: %{z}<extra></extra>")
+
+            st.plotly_chart(fig, use_container_width=True)
