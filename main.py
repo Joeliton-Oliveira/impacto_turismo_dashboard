@@ -1,5 +1,3 @@
-# main.py
-
 import streamlit as st
 
 # Importações internas (módulos do projeto)
@@ -22,31 +20,45 @@ st.set_page_config(
 # Aplicação do tema visual
 aplicar_estilo()
 
+# ======= Menu de Navegação na Sidebar (fica acima dos filtros) =======
+menu = st.sidebar.radio(
+    "📄 Menu de Navegação",
+    ["Dashboard", "Relatório"]
+)
+# ====================================================================
+
 # Exibição do cabeçalho com logo e título
 exibir_cabecalho()
 
 # Carregamento dos dados
 df = carregar_dados()
 
-
-# Filtros e dados filtrados
+# Filtros e dados filtrados (os filtros ficam SEMPRE na sidebar)
 df_filtrado, filtros = aplicar_filtros(df)
 
-# Verifica se filtros essenciais foram aplicados
-if not filtros["cidade"] or not filtros["tipo_impacto"] or df_filtrado.empty:
-    st.info("Nenhum dado encontrado. Selecione ao menos uma cidade e um tipo de impacto para gerar os gráficos.")
-else:
-    # Exibição de métricas principais
-    exibir_metricas(df_filtrado)
+# Dependendo do menu, muda o conteúdo central:
 
-    # Geração dos gráficos
-    exibir_grafico_barras(df_filtrado)
-    exibir_grafico_pizza(df_filtrado)
-    exibir_heatmap(df_filtrado)
-    exibir_grafico_dispersao(df_filtrado)
+if menu == "Dashboard":
+    # Verifica se filtros essenciais foram aplicados
+    if not filtros["cidade"] or not filtros["tipo_impacto"] or df_filtrado.empty:
+        st.info("Nenhum dado encontrado. Selecione ao menos uma cidade e um tipo de impacto para gerar os gráficos.")
+    else:
+        # Exibição de métricas principais
+        exibir_metricas(df_filtrado)
 
-    # Legenda visual
-    st.markdown("### 🧾 Legenda Visual")
-    st.markdown("- 🟦 **Positivo:** Impactos com expectativa ou resultado benéfico")
-    st.markdown("- 🟧 **Negativo:** Impactos com expectativa ou resultado prejudicial")
-    st.markdown("- ⚪ **Neutro:** Respostas intermediárias ou avaliativas (pode ser incluído se houver)")
+        # Geração dos gráficos
+        exibir_grafico_barras(df_filtrado)
+        exibir_grafico_pizza(df_filtrado)
+        exibir_heatmap(df_filtrado)
+        exibir_grafico_dispersao(df_filtrado)
+
+        # Legenda visual
+        st.markdown("### 🧾 Legenda Visual")
+        st.markdown("- 🟦 **Positivo:** Impactos com expectativa ou resultado benéfico")
+        st.markdown("- 🟧 **Negativo:** Impactos com expectativa ou resultado prejudicial")
+        st.markdown("- ⚪ **Neutro:** Respostas intermediárias ou avaliativas (pode ser incluído se houver)")
+
+elif menu == "Relatório":
+    # Importa corretamente da pasta components
+    from components.relatorio import gerar_relatorio
+    gerar_relatorio(df_filtrado, filtros)
