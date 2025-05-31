@@ -1,0 +1,14 @@
+# .gitignore
+
+# Ignore venv
+venv/
+
+# Ignore arquivos Python compilados
+__pycache__/
+*.pyc
+
+# Ignore arquivos do macOS
+.DS_Store
+
+# Ignore arquivos temporários de Excel
+~$*.xlsx
